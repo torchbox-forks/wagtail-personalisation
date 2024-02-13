@@ -3,7 +3,8 @@ import re
 from setuptools import find_packages, setup
 
 install_requires = [
-    "wagtail>=4.1",
+    "wagtail>=4.1,<6",
+    "django>=3.2,<5",
     "user-agents>=1.1.0",
     "wagtail-font-awesome-svg>=1.0.1",
     "pycountry",
