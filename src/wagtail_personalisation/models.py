@@ -146,9 +146,11 @@ class Segment(ClusterableModel):
                         "{}_related".format(rule_model._meta.db_table),
                         label="{}{}".format(
                             rule_model._meta.verbose_name,
-                            " ({})".format(_("Static compatible"))
-                            if rule_model.static
-                            else "",
+                            (
+                                " ({})".format(_("Static compatible"))
+                                if rule_model.static
+                                else ""
+                            ),
                         ),
                     )
                     for rule_model in AbstractBaseRule.__subclasses__()
