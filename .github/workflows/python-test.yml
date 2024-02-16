@@ -36,9 +36,9 @@ jobs:
           python -m pip install tox tox-gh-actions
       - name: Test with tox
         run: tox
-      - name: Prepare artifacts
-        run: mkdir -p .coverage-data && mv .coverage.* .coverage-data/
-      - uses: actions/upload-artifact@master
-        with:
-          name: coverage-data
-          path: .coverage-data/
+      # - name: Prepare artifacts
+      #   run: mkdir -p .coverage-data && mv .coverage.* .coverage-data/
+      # - uses: actions/upload-artifact@master
+      #   with:
+      #     name: coverage-data
+      #     path: .coverage-data/
