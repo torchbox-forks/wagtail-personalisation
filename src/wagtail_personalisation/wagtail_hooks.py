@@ -129,7 +129,7 @@ def dont_show_variant(parent_page, pages, request):
 if WAGTAIL_VERSION >= (5, 2):
 
     @hooks.register("register_page_listing_buttons")
-    def page_listing_variant_buttons(page, user, *args, **is_parent):
+    def page_listing_variant_buttons(page, user, next_url, *args, **is_parent):
         """Adds page listing buttons to personalisable pages. Shows variants for
         the page (if any) and a 'Create a new variant' button.
 
@@ -145,6 +145,7 @@ if WAGTAIL_VERSION >= (5, 2):
                 hook_name="register_page_listing_variant_buttons",
                 page=page,
                 user=user,
+                next_url=next_url,
                 attrs={"target": "_blank", "title": _("Create or edit a variant")},
                 priority=100,
             )
@@ -176,7 +177,7 @@ else:
 if WAGTAIL_VERSION >= (5, 2):
 
     @hooks.register("register_page_listing_variant_buttons")
-    def page_listing_more_buttons(page, user, is_parent=False, *args):
+    def page_listing_more_buttons(page, user, next_url):
         """Adds a 'more' button to personalisable pages allowing users to quickly
         create a new variant for the selected segment.
 

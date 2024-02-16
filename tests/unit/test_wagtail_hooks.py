@@ -55,21 +55,21 @@ def test_serve_variant_with_variant_segmented(site, rf, segmented_page):
 
 
 @pytest.mark.django_db
-def test_page_listing_variant_buttons(site, rf, segmented_page):
+def test_page_listing_variant_buttons(site, rf, segmented_page, user):
     page = segmented_page.personalisation_metadata.canonical_page
 
     SegmentFactory(name="something")
-    result = wagtail_hooks.page_listing_variant_buttons(page, [])
+    result = wagtail_hooks.page_listing_variant_buttons(page, user, [])
     items = list(result)
     assert len(items) == 1
 
 
 @pytest.mark.django_db
-def test_page_listing_more_buttons(site, rf, segmented_page):
+def test_page_listing_more_buttons(site, rf, segmented_page, user):
     page = segmented_page.personalisation_metadata.canonical_page
 
     SegmentFactory(name="something")
-    result = wagtail_hooks.page_listing_more_buttons(page, [])
+    result = wagtail_hooks.page_listing_more_buttons(page, user, [])
     items = list(result)
     assert len(items) == 3
 
