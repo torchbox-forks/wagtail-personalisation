@@ -71,17 +71,13 @@ class Segment(ClusterableModel):
         max_length=20,
         choices=TYPE_CHOICES,
         default=TYPE_DYNAMIC,
-        help_text=mark_safe(
-            _(
-                """
+        help_text=mark_safe(_("""
             </br></br><strong>Dynamic:</strong> Select this if you don't want to
             limit the number of users who are shown the CTA.
             </br><strong>Static:</strong> Static segments will contain the
             members that pass those rules when the segment is created, up
             to maximum of <strong>32,767 users</strong>.
-        """
-            )
-        ),
+        """)),
     )
     count = models.PositiveSmallIntegerField(
         default=0,
