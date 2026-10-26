@@ -1,3 +1,5 @@
+import pytest
+
 from tests.factories.rule import QueryRuleFactory, VisitCountRuleFactory
 from tests.factories.segment import SegmentFactory
 from wagtail_personalisation import adapters, wagtail_hooks
@@ -32,6 +34,30 @@ def test_explicit_refresh_still_re_evaluates(rf):
     adapter.refresh()
     segment.refresh_from_db()
     assert segment.visit_count == 2
+
+
+def test_deferred_adapter_never_accesses_session(rf, site, django_assert_num_queries):
+    request = rf.get("/")
+    del request.session
+    adapters.defer_personalisation(request)
+    with django_assert_num_queries(0):
+        adapter = adapters.get_segment_adapter(request)
+        adapter.ensure_segments_evaluated()
+        adapter.refresh()
+        adapter.add_page_visit(site.root_page)
+        adapter.update_visit_count()
+        adapter.set_segments([object()])
+        assert adapter.get_segments() == []
+        assert adapter.get_segments("excluded_segments") == []
+        assert adapter.get_segment_by_id(1) is None
+        assert adapter.get_visit_count() == 0
+
+
+def test_deferral_must_precede_adapter_creation(rf):
+    request = rf.get("/")
+    adapters.get_segment_adapter(request)
+    with pytest.raises(RuntimeError, match="before"):
+        adapters.defer_personalisation(request)
 
 
 def test_session_adapter_subclasses_use_existing_user_sessions(

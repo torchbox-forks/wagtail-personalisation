@@ -17,6 +17,7 @@ from wagtail.models import Page
 
 from wagtail_personalisation import admin_urls, models, utils
 from wagtail_personalisation.adapters import (
+    defer_personalisation,
     evaluate_segments,
     get_segment_adapter,
     record_page_visit,
@@ -35,6 +36,16 @@ def register_admin_urls():
             include(admin_urls, namespace="wagtail_personalisation"),
         )
     ]
+
+
+@hooks.register("before_serve_page", order=-100)
+def choose_personalisation_delivery(page, request, serve_args, serve_kwargs):
+    from wagtail_personalisation.delivery import DeferredPersonalisationMixin
+
+    if isinstance(
+        page, DeferredPersonalisationMixin
+    ) and page.should_defer_personalisation(request):
+        defer_personalisation(request)
 
 
 @hooks.register("before_serve_page")
