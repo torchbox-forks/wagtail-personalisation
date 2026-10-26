@@ -38,6 +38,7 @@
     "start": "yarn compile && yarn watch",
     "compile": "webpack --bail",
     "watch": "webpack --watch",
+    "test:fragments": "node --test tests/javascript/fragments.test.cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
