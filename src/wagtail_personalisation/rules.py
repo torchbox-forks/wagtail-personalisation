@@ -290,7 +290,7 @@ class VisitCountRule(AbstractBaseRule):
             request.user = user
 
             # If we're using the session adapter check for an active session
-            if SEGMENT_ADAPTER_CLASS == SessionSegmentsAdapter:  # noqa: SIM300
+            if issubclass(SEGMENT_ADAPTER_CLASS, SessionSegmentsAdapter):
                 request.session = self._get_user_session(user)
             else:
                 request.session = SessionStore()
@@ -338,7 +338,7 @@ class VisitCountRule(AbstractBaseRule):
         request.user = user
 
         # If we're using the session adapter check for an active session
-        if SEGMENT_ADAPTER_CLASS == SessionSegmentsAdapter:  # noqa: SIM300
+        if issubclass(SEGMENT_ADAPTER_CLASS, SessionSegmentsAdapter):
             request.session = self._get_user_session(user)
         else:
             request.session = SessionStore()
