@@ -199,3 +199,30 @@ def test_get_geoip_module_enabled():
     from django.contrib.gis.geoip2 import GeoIP2
 
     assert get_geoip_module() is GeoIP2
+
+
+@skip_if_geoip2_not_installed
+@pytest.mark.django_db
+def test_unconfigured_geoip_does_not_break_country_targeting(rf, settings):
+    settings.GEOIP_PATH = ""
+    rule = OriginCountryRuleFactory(segment=SegmentFactory(), country="gb")
+    assert not rule.test_user(rf.get("/", REMOTE_ADDR="127.0.0.1"))
+
+
+@skip_if_geoip2_not_installed
+@pytest.mark.django_db
+def test_missing_geoip_database_does_not_break_country_targeting(
+    rf, settings, tmp_path
+):
+    settings.GEOIP_PATH = str(tmp_path / "missing.mmdb")
+    rule = OriginCountryRuleFactory(segment=SegmentFactory(), country="gb")
+    assert not rule.test_user(rf.get("/", REMOTE_ADDR="127.0.0.1"))
+
+
+@pytest.mark.django_db
+def test_geoip_programming_errors_are_not_swallowed(rf):
+    rule = OriginCountryRuleFactory(segment=SegmentFactory(), country="gb")
+    with patch("wagtail_personalisation.rules.get_geoip_module") as geoip:
+        geoip.return_value.side_effect = RuntimeError("Unexpected error")
+        with pytest.raises(RuntimeError, match="Unexpected error"):
+            rule.test_user(rf.get("/", REMOTE_ADDR="127.0.0.1"))
