@@ -2,6 +2,7 @@ import functools
 from datetime import datetime
 from importlib import import_module
 
+from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -144,3 +145,7 @@ class SegmentAdminForm(WagtailAdminModelForm):
         media = super().media
         media.add_js([static("js/segment_form_control.js")])
         return media
+
+
+class SegmentOverrideForm(forms.Form):
+    segment = forms.IntegerField(required=False, min_value=1)

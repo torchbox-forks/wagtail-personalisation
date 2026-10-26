@@ -47,6 +47,7 @@ plugins:
           - default-rules.md
         Usage guide:
           - usage-guide/implementation.md
+          - usage-guide/deferred-delivery.md
           - usage-guide/custom-rules.md
         Editor guide:
           - editor-guide/introduction.md
@@ -69,6 +70,7 @@ nav:
   - Getting started: getting-started.md
   - Usage guide:
       - Implementation: usage-guide/implementation.md
+      - Deferred delivery: usage-guide/deferred-delivery.md
       - Custom rules: usage-guide/custom-rules.md
   - Editor guide:
       - Introduction: editor-guide/introduction.md

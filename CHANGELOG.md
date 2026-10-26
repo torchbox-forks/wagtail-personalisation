@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Add once-per-request segment evaluation and preserve superuser segment overrides across repeated context rendering, while retaining explicit `refresh()` behaviour.
+- Add opt-in deferred personalisation with a reusable page mixin, private fragment endpoint, and dependency-free browser loader.
+- Preserve original page query parameters and referrer for fragment rule evaluation, and record each logical page visit once per request.
+- Handle unavailable GeoIP configuration without failing country targeting requests.
+- Support session-adapter subclasses when evaluating authenticated users' visit history in the admin.
+
 ## [1.0.0] - 2026-07-23
 
 - Add a new documentation website

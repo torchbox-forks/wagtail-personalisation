@@ -16,7 +16,12 @@ from wagtail.admin.widgets import Button, ButtonWithDropdownFromHook
 from wagtail.models import Page
 
 from wagtail_personalisation import admin_urls, models, utils
-from wagtail_personalisation.adapters import get_segment_adapter
+from wagtail_personalisation.adapters import (
+    defer_personalisation,
+    evaluate_segments,
+    get_segment_adapter,
+    record_page_visit,
+)
 from wagtail_personalisation.models import PersonalisablePageMetadata
 
 logger = logging.getLogger(__name__)
@@ -33,6 +38,16 @@ def register_admin_urls():
     ]
 
 
+@hooks.register("before_serve_page", order=-100)
+def choose_personalisation_delivery(page, request, serve_args, serve_kwargs):
+    from wagtail_personalisation.delivery import DeferredPersonalisationMixin
+
+    if isinstance(
+        page, DeferredPersonalisationMixin
+    ) and page.should_defer_personalisation(request):
+        defer_personalisation(request)
+
+
 @hooks.register("before_serve_page")
 def set_visit_count(page, request, serve_args, serve_kwargs):
     """Tests the provided rules to see if the request still belongs
@@ -44,8 +59,7 @@ def set_visit_count(page, request, serve_args, serve_kwargs):
     :type request: django.http.HttpRequest
 
     """
-    adapter = get_segment_adapter(request)
-    adapter.add_page_visit(page)
+    record_page_visit(request, page)
 
 
 @hooks.register("before_serve_page")
@@ -58,14 +72,7 @@ def segment_user(page, request, serve_args, serve_kwargs):
     :type request: django.http.HttpRequest
 
     """
-    adapter = get_segment_adapter(request)
-    adapter.refresh()
-
-    forced_segment = request.GET.get("segment", None)
-    if request.user.is_superuser and forced_segment is not None:
-        segment = models.Segment.objects.filter(pk=forced_segment).first()
-        if segment:
-            adapter.set_segments([segment])
+    evaluate_segments(request)
 
 
 class UserbarSegmentedLinkItem:

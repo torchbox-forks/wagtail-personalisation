@@ -290,7 +290,7 @@ class VisitCountRule(AbstractBaseRule):
             request.user = user
 
             # If we're using the session adapter check for an active session
-            if SEGMENT_ADAPTER_CLASS == SessionSegmentsAdapter:  # noqa: SIM300
+            if issubclass(SEGMENT_ADAPTER_CLASS, SessionSegmentsAdapter):
                 request.session = self._get_user_session(user)
             else:
                 request.session = SessionStore()
@@ -338,7 +338,7 @@ class VisitCountRule(AbstractBaseRule):
         request.user = user
 
         # If we're using the session adapter check for an active session
-        if SEGMENT_ADAPTER_CLASS == SessionSegmentsAdapter:  # noqa: SIM300
+        if issubclass(SEGMENT_ADAPTER_CLASS, SessionSegmentsAdapter):
             request.session = self._get_user_session(user)
         else:
             request.session = SessionStore()
@@ -495,7 +495,17 @@ class OriginCountryRule(AbstractBaseRule):
         GeoIP2 = get_geoip_module()
         if GeoIP2 is None:
             return False
-        return GeoIP2().country_code(get_client_ip(request)).lower()
+        try:
+            from django.contrib.gis.geoip2 import GeoIP2Exception
+        except ImportError:
+            geoip_errors = ()
+        else:
+            geoip_errors = (GeoIP2Exception,)
+        try:
+            return GeoIP2().country_code(get_client_ip(request)).lower()
+        except geoip_errors:
+            logger.debug("GeoIP country lookup unavailable.", exc_info=True)
+            return False
 
     def get_country(self, request):
         # Prioritise CloudFlare and CloudFront country detection over GeoIP.

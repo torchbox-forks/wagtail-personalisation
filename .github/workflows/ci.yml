@@ -55,6 +55,19 @@ jobs:
           name: coverage-data-${{ matrix.python }}
           path: .coverage-data/
 
+  fragment-loader:
+    name: Fragment loader
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Test fragment loader
+        run: node --test tests/javascript/fragments.test.cjs
+
   docs:
     needs: test
     runs-on: ubuntu-latest

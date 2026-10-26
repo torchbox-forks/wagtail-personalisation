@@ -18,6 +18,7 @@ class BaseSegmentsAdapter:
 
         """
         self.request = request
+        self._segments_evaluated = False
 
     def setup(self):
         """Prepare the adapter for segment storage."""
@@ -33,6 +34,12 @@ class BaseSegmentsAdapter:
 
     def refresh(self):
         """Refresh the segments stored in the adapter storage."""
+
+    def ensure_segments_evaluated(self):
+        """Evaluate at most once on this adapter; refresh() remains explicit."""
+        if not self._segments_evaluated:
+            self.refresh()
+            self._segments_evaluated = True
 
     def _test_rules(self, rules, request, match_any=False):
         """Tests the provided rules to see if the request still belongs
@@ -223,6 +230,29 @@ class SessionSegmentsAdapter(BaseSegmentsAdapter):
         self.set_segments(current_segments + additional_segments)
         self.set_segments(excluded_segments, "excluded_segments")
         self.update_visit_count()
+        self._segments_evaluated = True
+
+
+class DeferredSegmentsAdapter(BaseSegmentsAdapter):
+    """No storage or evaluation on a response using deferred delivery."""
+
+    def get_segments(self, key="segments"):
+        return []
+
+    def get_segment_by_id(self, segment_id):
+        return None
+
+    def set_segments(self, segments, key="segments"):
+        pass
+
+    def add_page_visit(self, page):
+        pass
+
+    def get_visit_count(self, page=None):
+        return 0
+
+    def update_visit_count(self):
+        pass
 
 
 SEGMENT_ADAPTER_CLASS = import_string(
@@ -237,5 +267,57 @@ SEGMENT_ADAPTER_CLASS = import_string(
 def get_segment_adapter(request):
     """Return the Segment Adapter for the given request"""
     if not hasattr(request, "segment_adapter"):
-        request.segment_adapter = SEGMENT_ADAPTER_CLASS(request)
+        adapter_class = (
+            DeferredSegmentsAdapter
+            if getattr(request, "_personalisation_deferred", False)
+            else SEGMENT_ADAPTER_CLASS
+        )
+        request.segment_adapter = adapter_class(request)
     return request.segment_adapter
+
+
+def defer_personalisation(request):
+    """Disable personalisation before any adapter/session access on this request."""
+    if hasattr(request, "segment_adapter"):
+        raise RuntimeError("Defer personalisation before creating the segment adapter.")
+    request._personalisation_deferred = True
+
+
+def evaluate_segments(request):
+    """Evaluate once, then retain an optional superuser override for this request."""
+    from wagtail_personalisation.forms import SegmentOverrideForm
+
+    adapter = get_segment_adapter(request)
+    adapter.ensure_segments_evaluated()
+    if not getattr(request, "_personalisation_override_applied", False):
+        if request.user.is_superuser and not isinstance(
+            adapter, DeferredSegmentsAdapter
+        ):
+            form = SegmentOverrideForm(request.GET)
+            if form.is_valid() and form.cleaned_data["segment"] is not None:
+                segment = Segment.objects.filter(
+                    pk=form.cleaned_data["segment"]
+                ).first()
+                if segment is not None:
+                    adapter.set_segments([segment])
+        request._personalisation_override_applied = True
+    return adapter
+
+
+def record_page_visit(request, page):
+    """Record a logical page visit once per request, including inline rendering."""
+    adapter = get_segment_adapter(request)
+    if isinstance(adapter, DeferredSegmentsAdapter):
+        return
+    visited = getattr(request, "_personalisation_visited_pages", None)
+    if visited is None:
+        visited = request._personalisation_visited_pages = set()
+    if page.pk not in visited:
+        adapter.add_page_visit(page)
+        visited.add(page.pk)
+
+
+def prepare_personalisation(request, page):
+    """Track a page before evaluating rules; safe for hooks and direct rendering."""
+    record_page_visit(request, page)
+    return evaluate_segments(request)

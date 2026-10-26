@@ -1,1 +1,10 @@
 {% extends "base.html" %}
+{% block content %}
+{% if personalisation_url %}
+<div data-personalisation-url="{{ personalisation_url }}">
+    <div data-personalisation-slot="audiences"></div>
+</div>
+{% else %}
+{% for segment in audiences %}{{ segment.name }}{% endfor %}
+{% endif %}
+{% endblock %}

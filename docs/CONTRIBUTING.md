@@ -57,6 +57,27 @@ or a specific test file:
 tox -e py314-dj60-wt74 -- tests/unit/test_foo.py::test_bar
 ```
 
+### Personalisation delivery checks
+
+The Python suite includes request evaluation and fragment endpoint integration
+tests. To run locally with UV:
+
+```sh
+uv run --extra test pytest
+uv run --extra test --with geoip2 pytest --ds=tests.forms_settings
+```
+
+The second command also exercises installed-but-unconfigured GeoIP and Wagtail's
+optional forms app. CI covers that configuration with
+`py312-dj60-wt74-geoip2-forms`.
+
+The framework-independent browser loader has a standalone suite requiring Node.js
+18 or newer, with no npm installation or legacy frontend build required:
+
+```sh
+node --test tests/javascript/fragments.test.cjs
+```
+
 ## Authors
 
 - Jasper Berghoef
