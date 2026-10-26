@@ -49,3 +49,8 @@ After that you can add a template block with the name of the segment you want th
 ```
 
 The template block currently only supports one segment at a time. If you want to target multiple segments you will have to make multiple blocks with the same content.
+
+## Shared page caching
+
+For opt-in visitor-specific fragments and once-per-request evaluation, see
+[Deferred personalisation](deferred-delivery.md).
